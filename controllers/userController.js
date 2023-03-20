@@ -60,7 +60,7 @@ exports.login = async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
         if (isPasswordValid) {
-            res.send('Logged in successfully');
+                res.send('Logged in successfully');
         } else {
             res.status(400).send('Incorrect password');
         }
@@ -77,21 +77,16 @@ exports.verify = async (req, res) => {
         const queryObject = url.parse(link, true).query;
         const verificationCode = queryObject.code;
 
-        const [rows, fields] = await pool.execute(
-            'SELECT * FROM Users WHERE verificationLink = ?',
+        const [rows] = await pool.execute(
+            `UPDATE Users set Verified = true WHERE verificationLink = ?`,
             [verificationCode]
-        );
-
-        if (rows.length === 0) {
-            return;
-        }
-        const user = rows[0];
-        const id = user.id;
-        await pool.execute(
-            'UPDATE users SET Verified = ? WHERE id = ?',
-            []
         )
 
+        if(rows.affectedRows === 0){
+
+            res.send('Users not found');
+        }
+        res.send('OK');
     }catch (error) {
         console.log(error);
         res.status(500).send('Internal Server Error');
